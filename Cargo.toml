@@ -1,0 +1,6 @@
+[workspace]
+  members = [
+    "lambdas/backup-files",
+    "lambdas/convert-mov",
+    "lambdas/metadata-store"
+]
