@@ -1,9 +1,8 @@
 use aws_config::{meta::region::RegionProviderChain, Region};
-use aws_sdk_s3::Client;
 use aws_lambda_events::event::sns::SnsEvent;
+use aws_sdk_s3::Client;
 use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use serde::{Deserialize, Serialize};
-
 
 // There is a lot of Struct scaffolding for all these events - thats Rust for you 🦀
 // --- SNS START ---
@@ -70,9 +69,10 @@ async fn function_handler(event: LambdaEvent<SnsEvent>) -> Result<(), Error> {
 
     // Configure the AWS SDK
     let region_provider = RegionProviderChain::default_provider().or_else(Region::new("us-west-2"));
-    let config = aws_config::defaults(
-        aws_config::BehaviorVersion::latest()
-        ).region(region_provider).load().await;
+    let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
+        .region(region_provider)
+        .load()
+        .await;
 
     let s3_client = Client::new(&config);
 
@@ -88,12 +88,26 @@ async fn function_handler(event: LambdaEvent<SnsEvent>) -> Result<(), Error> {
         let destination_bucket = "aws-darko-videos-backups".to_string();
         let destination_key = format!("backed_up/{}", source_key);
 
-        println!("Backing Up Object s3://{}/{} to s3://{}/{}",&source_bucket, &source_key, &destination_bucket, &destination_key);
-        match copy_object(&s3_client, &source_bucket, &source_key, &destination_bucket, &destination_key).await {
+        println!(
+            "Backing Up Object s3://{}/{} to s3://{}/{}",
+            &source_bucket, &source_key, &destination_bucket, &destination_key
+        );
+        match copy_object(
+            &s3_client,
+            &source_bucket,
+            &source_key,
+            &destination_bucket,
+            &destination_key,
+        )
+        .await
+        {
             Ok(_) => {
                 match tag_object(&s3_client, &source_bucket, &source_key).await {
                     Ok(_) => println!("Object succesfully Tagged"),
-                    Err(e) => eprintln!("Your object was uploaded, but there was an issue tagging the original: {}",e),
+                    Err(e) => eprintln!(
+                        "Your object was uploaded, but there was an issue tagging the original: {}",
+                        e
+                    ),
                 }
                 println!("Backup worked");
             }
@@ -104,35 +118,45 @@ async fn function_handler(event: LambdaEvent<SnsEvent>) -> Result<(), Error> {
     Ok(())
 }
 
-async fn copy_object(client: &Client, source_bucket: &str, source_key: &str, dest_bucket: &str, dest_key: &str) -> Result<(), aws_sdk_s3::Error> {
-    client.copy_object()
+async fn copy_object(
+    client: &Client,
+    source_bucket: &str,
+    source_key: &str,
+    dest_bucket: &str,
+    dest_key: &str,
+) -> Result<(), aws_sdk_s3::Error> {
+    client
+        .copy_object()
         .copy_source(format!("{}/{}", source_bucket, source_key))
         .bucket(dest_bucket)
         .key(dest_key)
         .send()
         .await?;
 
-        Ok(())
+    Ok(())
 }
 
-async fn tag_object(client: &Client, source_bucket: &str, source_key: &str) -> Result<(), aws_sdk_s3::Error> {
+async fn tag_object(
+    client: &Client,
+    source_bucket: &str,
+    source_key: &str,
+) -> Result<(), aws_sdk_s3::Error> {
     let tag = aws_sdk_s3::types::Tag::builder()
         .key("backed_up")
         .value("TRUE")
         .build()?;
 
-    let tags = aws_sdk_s3::types::Tagging::builder()
-        .tag_set(tag)
-        .build()?;
+    let tags = aws_sdk_s3::types::Tagging::builder().tag_set(tag).build()?;
 
-    client.put_object_tagging()
+    client
+        .put_object_tagging()
         .bucket(source_bucket)
         .key(source_key)
         .tagging(tags)
         .send()
         .await?;
 
-        Ok(())
+    Ok(())
 }
 
 #[tokio::main]

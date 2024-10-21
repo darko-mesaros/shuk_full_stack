@@ -4,7 +4,7 @@ use aws_sdk_mediaconvert::types::{
     OutputGroup, OutputGroupSettings, VideoCodecSettings, VideoDescription,
 };
 use aws_sdk_mediaconvert::Client;
-use lambda_runtime::{run, service_fn, Error, LambdaEvent, tracing};
+use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use serde_json::{json, Value};
 
 async fn function_handler(event: LambdaEvent<Value>) -> Result<(), Error> {
@@ -17,7 +17,7 @@ async fn function_handler(event: LambdaEvent<Value>) -> Result<(), Error> {
         .as_str()
         .ok_or("Input key not provided")?;
     // NOTE: This will most likely always be the same bucket
-    let output_bucket = event.payload["output_bucket"] 
+    let output_bucket = event.payload["output_bucket"]
         .as_str()
         .ok_or("Output bucket not provided")?;
     let output_key = format!("converted_video/{}", &input_key);
