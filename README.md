@@ -1,14 +1,14 @@
-# Welcome to your CDK TypeScript project
+# Shuk full stack project
 
-This is a blank project for CDK development with TypeScript.
+**PLEASE NOTE:** This is still a work in progress. Deploy at your own risk.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+The goal of this project is to provide individuals a full stack deployment of additional features and services for the [shuk](https://github.com/darko-mesaros/shuk) file uploader utility. It is meant to be deployed on your own AWS account.
 
-## Useful commands
+Current Plans:
+- Provide backing up of files to other S3 buckets (just in case)
+- Converting QuickTime `.mov` videos into `.mp4`
+- Storing metadata of all the files
+- Providing a dashboard of all the files uploaded and managed by `shuk`
+- User authentication (?)
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+![tentative_infra](/img/infra.png)
